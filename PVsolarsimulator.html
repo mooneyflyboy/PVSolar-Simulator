@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residential PV Solar System Simulator - Fort Worth, TX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 1rem;
+        }
+        .container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            max-width: 1200px;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+        }
+        .input-section {
+            background: linear-gradient(145deg, #e6f4ea, #d1e7dd);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: center;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .input-group label {
+            font-size: 0.9rem;
+            font-weight: medium;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .input-group label .tooltip {
+            cursor: help;
+            font-size: 0.7rem;
+            background: #4a5568;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.3rem;
+            position: relative;
+        }
+        .input-group label .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d3748;
+            color: white;
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #a0aec0;
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #38a169;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #2f855a;
+        }
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        select:focus, input[type="number"]:focus {
+            border-color: #38a169;
+            outline: none;
+        }
+        .results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 0.5rem;
+        }
+        .results p {
+            margin: 0.3rem 0;
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+        .results .comment {
+            font-style: italic;
+            color: #4a5568;
+            font-size: 0.85rem;
+            margin-top: -0.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .disclaimer {
+            font-style: italic;
+            color: #4a5568;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .savings {
+            background: #68d391;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin: 1rem 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .savings h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .savings p {
+            margin: 0.5rem 0 0;
+            font-size: 0.9rem;
+        }
+        .savings .environmental {
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        .chart-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .chart-container {
+            flex: 1;
+            min-width: 300px;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: #edf2f7;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            position: relative;
+        }
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        .load-profile {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #edf2f7;
+            border-radius: 0.5rem;
+        }
+        .load-profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .load-profile-hour {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+        }
+        .long-term-savings {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fefcbf;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .long-term-savings h3 {
+            margin: 0.3rem 0;
+            font-size: 1rem;
+        }
+        .long-term-savings p {
+            margin: 0.3rem 0;
+            font-size: 0.9rem;
+        }
+        footer {
+            margin-top: 1rem;
+            text-align: center;
+            color: #4a5568;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            h1 {
+                font-size: 1.2rem;
+            }
+            .input-section {
+                padding: 1rem;
+                grid-template-columns: 1fr;
+            }
+            .results p {
+                font-size: 0.8rem;
+            }
+            .results .comment {
+                font-size: 0.75rem;
+            }
+            .disclaimer {
+                font-size: 0.75rem;
+            }
+            .savings h3 {
+                font-size: 1rem;
+            }
+            .savings p {
+                font-size: 0.8rem;
+            }
+            .savings .environmental {
+                font-size: 0.8rem;
+            }
+            .chart-container {
+                min-width: 100%;
+            }
+            canvas {
+                height: 250px !important;
+            }
+            .legend {
+                font-size: 0.7rem;
+                gap: 0.5rem;
+            }
+            .legend-color {
+                width: 10px;
+                height: 10px;
+            }
+            .load-profile-grid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            }
+            .load-profile-hour {
+                font-size: 0.7rem;
+            }
+            .long-term-savings p {
+                font-size: 0.8rem;
+            }
+            input[type="range"] {
+                height: 6px;
+            }
+            .vertical-label {
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+                transform: rotate(180deg);
+            }
+            input[type="range"]::-webkit-slider-thumb {
+                width: 16px;
+                height: 16px;
+            }
+            footer {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 text-center mb-4">PV Solar System Simulator</h1>
+        <p class="text-center text-gray-600 mb-6 text-sm md:text-base">Simulate a residential solar system in Fort Worth, Texas</p>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="pv-size" class="block text-sm font-medium text-gray-700">
+                    PV System Size (kW)
+                    <span class="tooltip" data-tooltip="Size of your solar panel system in kilowatts">?</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="pv-size" min="1" max="50" step="0.1" value="5" class="w-full">
+                    <span id="pv-size-value" class="text-sm font-semibold text-gray-800">5 kW</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700">
+                    Add Batteries?
+                    <span class="tooltip" data-tooltip="Add battery storage for backup or nighttime use">?</span>
+                </label>
+                <div class="radio-group">
+                    <label class="flex items-center">
+                        <input type="radio" name="add-batteries" value="yes" class="mr-2">
+                        <span class="text-sm text-gray-700">Yes</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="add-batteries" value="no" class="mr-2" checked>
+                        <span class="text-sm text-gray-700">No</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="battery-selection" class="input-group hidden">
+                <label for="battery-model" class="block text-sm font-medium text-gray-700">
+                    Battery Model
+                    <span class="tooltip" data-tooltip="Select a battery model or enter a custom capacity">?</span>
+                </label>
+                <select id="battery-model" class="w-full">
+                    <option value="13.5" data-name="Tesla Powerwall 3">Tesla Powerwall 3 (13.5 kWh)</option>
+                    <option value="5.0" data-name="Enphase IQ Battery 5P">Enphase IQ Battery 5P (5.0 kWh)</option>
+                    <option value="13.5" data-name="FranklinWH aPower2">FranklinWH aPower2 (13.5 kWh)</option>
+                    <option value="17.1" data-name="Panasonic EVERVOLT">Panasonic EVERVOLT (17.1 kWh)</option>
+                    <option value="11.5" data-name="Villara VillaGrid">Villara VillaGrid (11.5 kWh)</option>
+                    <option value="10.0" data-name="SolAX Power T-BAT H">SolAX Power T-BAT H (10.0 kWh)</option>
+                    <option value="12.0" data-name="Sonnen ecoLinx 12">Sonnen ecoLinx 12 (12.0 kWh)</option>
+                    <option value="18.0" data-name="Generac PWRcell">Generac PWRcell (18.0 kWh)</option>
+                    <option value="16.0" data-name="LGES 16H Prime">LGES 16H Prime (16.0 kWh)</option>
+                    <option value="10.0" data-name="JinkoSolar SunGiga">JinkoSolar SunGiga (10.0 kWh)</option>
+                    <option value="custom" data-name="Other">Other</option>
+                </select>
+            </div>
+
+            <div id="custom-battery-capacity" class="input-group hidden">
+                <label for="custom-battery-kwh" class="block text-sm font-medium text-gray-700">
+                    Battery Capacity (kWh)
+                    <span class="tooltip" data-tooltip="Enter the capacity of your custom battery in kWh">?</span>
+                </label>
+                <input type="number" id="custom-battery-kwh" min="1" step="0.1" value="10" placeholder="Enter battery capacity in kWh" class="w-full">
+            </div>
+
+            <div id="battery-quantity-group" class="input-group hidden">
+                <label for="battery-quantity" class="block text-sm font-medium text-gray-700">
+                    Number of Batteries
+                    <span class="tooltip" data-tooltip="How many batteries to include in your system">?</span>
+                </label>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="battery-quantity" min="1" max="10" step="1" value="1" class="w-1/3">
+                    <span id="total-battery-capacity" class="text-sm font-semibold text-gray-800">Total Capacity: 13.5 kWh</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="monthly-bill" class="block text-sm font-medium text-gray-700">
+                    Monthly Electric Bill ($)
+                    <span class="tooltip" data-tooltip="Your current monthly electricity bill without solar">?</span>
+                </label>
+                <input type="number" id="monthly-bill" min="0" step="1" value="200" placeholder="Enter monthly bill" class="w-full">
+            </div>
+
+            <div class="input-group">
+                <label for="rate-per-kwh" class="block text-sm font-medium text-gray-700">
+                    Rate per kWh ($/kWh)
+                    <span class="tooltip" data-tooltip="Your current electricity rate per kWh">?</span>
+                </label>
+                <input type="number" id="rate-per-kwh" min="0" step="0.001" value="0.145" placeholder="Enter rate per kWh" class="w-full">
+            </div>
+
+            <div class="input-group">
+                <label for="utility-rate-increase" class="block text-sm font-medium text-gray-700">
+                    Annual Utility Rate Increase (%)
+                    <span class="tooltip" data-tooltip="Expected yearly increase in electricity rates (default: 3%)">?</span>
+                </label>
+                <input type="number" id="utility-rate-increase" min="0" step="0.1" value="3" placeholder="Enter annual rate increase" class="w-full">
+            </div>
+
+            <div class="input-group">
+                <label for="month-selection" class="block text-sm font-medium text-gray-700">
+                    Month for Weather Adjustment
+                    <span class="tooltip" data-tooltip="Select a month to adjust solar production based on Fort Worth weather">?</span>
+                </label>
+                <select id="month-selection" class="w-full">
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6" selected>July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="load-profile-selection" class="block text-sm font-medium text-gray-700">
+                    Load Profile
+                    <span class="tooltip" data-tooltip="Select a typical daily energy usage pattern">?</span>
+                </label>
+                <select id="load-profile-selection" class="w-full">
+                    <option value="flat">Flat (Even Usage)</option>
+                    <option value="morning-peak">Morning Peak</option>
+                    <option value="evening-peak">Evening Peak</option>
+                    <option value="work-from-home">Work-from-Home</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <div id="custom-load-profile" class="load-profile hidden">
+                <h3 class="text-md font-semibold text-gray-700 mb-2">Custom Load Profile (kWh per Hour)</h3>
+                <div class="load-profile-grid" id="load-profile-grid">
+                    <!-- Dynamically populated with 24 hour inputs -->
+                </div>
+            </div>
+
+            <div class="input-group col-span-full">
+                <button onclick="simulateSolar()" class="w-full bg-green-600 text-white p-2 rounded-lg font-semibold hover:bg-green-700 transition duration-300">Run Simulation</button>
+            </div>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Simulation Results</h2>
+            <p><strong>Daily Solar Production (Adjusted for Month):</strong> <span id="daily-production"></span> kWh</p>
+            <p><strong>Daily Household Consumption:</strong> <span id="daily-consumption"></span> kWh</p>
+            <p id="battery-status-container" style="display: none;"><strong>Battery Status (End of Day):</strong> <span id="battery-status"></span> kWh</p>
+            <p><strong>Net Energy Balance:</strong> <span id="net-balance"></span> kWh</p>
+            <p><strong>Grid Import (if any):</strong> <span id="grid-import"></span> kWh</p>
+            <p class="comment" id="grid-import-comment"></p>
+
+            <div class="savings" id="savings-section" style="display: none;">
+                <h3>🎉 You're Saving $<span id="annual-savings"></span> in Your First Year! 🎉</h3>
+                <p id="savings-message"></p>
+                <p class="environmental" id="environmental-savings"></p>
+            </div>
+
+            <div class="long-term-savings">
+                <h3 class="text-md font-semibold text-gray-700 mb-2">Long-Term Cumulative Savings (Adjusted for Degradation, Maintenance, and Rate Increases)</h3>
+                <p><strong>Cumulative Savings by Year 1:</strong> $<span id="savings-year-1"></span></p>
+                <p><strong>Cumulative Savings by Year 5:</strong> $<span id="savings-year-5"></span></p>
+                <p><strong>Cumulative Savings by Year 10:</strong> $<span id="savings-year-10"></span></p>
+                <p><strong>Cumulative Savings by Year 25:</strong> $<span id="savings-year-25"></span></p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Daily Energy Overview</h3>
+                    <div class="legend" id="bar-chart-legend"></div>
+                    <canvas id="barChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Hourly Energy Profile</h3>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #68d391;"></div>
+                            <span>Solar Production</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f56565;"></div>
+                            <span>Consumption</span>
+                        </div>
+                        <div class="legend-item" id="battery-legend" style="display: none;">
+                            <div class="legend-color" style="background-color: #4c51bf;"></div>
+                            <span>Battery Charge</span>
+                        </div>
+                    </div>
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-container">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Monthly Energy Production vs. Consumption</h3>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #4299e1;"></div>
+                            <span>Total Energy Produced</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f56565;"></div>
+                            <span>Consumption</span>
+                        </div>
+                    </div>
+                    <canvas id="monthlyEnergyChart"></canvas>
+                </div>
+            </div>
+
+            <p class="disclaimer">
+                Disclaimer: These results are estimates and not guaranteed. Actual savings may vary based on factors such as weather, system efficiency, usage patterns, and future utility rate changes. For battery sizing, consider both capacity and max continuous output to ensure the system can handle peak loads during outages for full or partial home backup. Savings are calculated assuming daily solar production offsets household consumption, with grid import covering any deficit at the provided electricity rate. Solar panel degradation (0.5% per year) and maintenance costs (e.g., cleaning, inverter replacement) are factored into long-term projections. Weather adjustments are based on historical averages for Fort Worth, TX. Consult with your utility company on net metering and credit payments for excess solar energy produced, which could add to additional savings created.
+            </p>
+        </div>
+    </div>
+
+    <footer>© Eco-NRGY Solutions 2025</footer>
+
+    <script>
+        function simulateSolar() {
+            console.log('Simulation started...');
+
+            try {
+                // Get user inputs
+                const pvSize = parseFloat(document.getElementById('pv-size').value);
+                const addBatteries = document.querySelector('input[name="add-batteries"]:checked').value;
+                const monthlyBill = parseFloat(document.getElementById('monthly-bill').value);
+                const ratePerKwh = parseFloat(document.getElementById('rate-per-kwh').value);
+                const utilityRateIncrease = parseFloat(document.getElementById('utility-rate-increase').value) / 100;
+                const selectedMonth = parseInt(document.getElementById('month-selection').value);
+                const loadProfileSelection = document.getElementById('load-profile-selection').value;
+
+                // Battery inputs (if applicable)
+                let totalBatterySize = 0;
+                let batteryCapacity = 0;
+                let batteryQuantity = 0;
+                if (addBatteries === 'yes') {
+                    const batteryModel = document.getElementById('battery-model');
+                    const selectedBattery = batteryModel.value;
+                    if (selectedBattery === 'custom') {
+                        batteryCapacity = parseFloat(document.getElementById('custom-battery-kwh').value);
+                    } else {
+                        batteryCapacity = parseFloat(batteryModel.value);
+                    }
+                    batteryQuantity = parseInt(document.getElementById('battery-quantity').value);
+                    totalBatterySize = batteryCapacity * batteryQuantity;
+                    document.getElementById('total-battery-capacity').textContent = `Total Capacity: ${totalBatterySize.toFixed(2)} kWh`;
+                    document.getElementById('battery-legend').style.display = 'flex';
+                    document.getElementById('battery-status-container').style.display = 'block';
+                } else {
+                    document.getElementById('battery-legend').style.display = 'none';
+                    document.getElementById('battery-status-container').style.display = 'none';
+                }
+
+                // Validate inputs
+                if (isNaN(pvSize) || isNaN(monthlyBill) || isNaN(ratePerKwh) || ratePerKwh <= 0 || (addBatteries === 'yes' && (isNaN(batteryCapacity) || isNaN(batteryQuantity) || batteryQuantity < 1 || batteryCapacity <= 0))) {
+                    alert('Please enter valid numbers for all fields. Rate per kWh and battery capacity must be greater than 0, and quantity must be at least 1 if batteries are added.');
+                    return;
+                }
+
+                // Calculate daily consumption
+                const dailyConsumption = (monthlyBill / ratePerKwh) / 30;
+                const monthlyConsumption = dailyConsumption * 30; // Assume 30 days per month for simplicity
+
+                // Weather variability: Monthly peak sun hours for Fort Worth, TX (based on historical averages)
+                const monthlyPeakSunHours = [4.5, 4.8, 5.2, 5.5, 5.8, 6.2, 6.5, 6.3, 5.9, 5.4, 4.7, 4.4];
+                const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                const peakSunHours = monthlyPeakSunHours[selectedMonth];
+                const days = daysInMonth[selectedMonth];
+                const annualAveragePeakSunHours = monthlyPeakSunHours.reduce((a, b) => a + b, 0) / 12;
+
+                // Assumptions for Fort Worth, TX
+                const efficiency = 0.85;
+                const degradationRate = 0.005; // 0.5% per year
+
+                // Calculate daily solar production for the selected month
+                const dailyProduction = pvSize * peakSunHours * efficiency;
+                // Annual average production for long-term calculations
+                const annualAverageDailyProduction = pvSize * annualAveragePeakSunHours * efficiency;
+
+                // Calculate monthly energy production (solar + battery discharge)
+                const monthlyEnergyProduced = monthlyPeakSunHours.map((sunHours, index) => {
+                    const dailySolarProduction = pvSize * sunHours * efficiency;
+                    let totalEnergy = dailySolarProduction * daysInMonth[index];
+                    if (addBatteries === 'yes') {
+                        const dailyBatteryDischarge = Math.min(totalBatterySize * 0.5, dailyConsumption);
+                        totalEnergy += dailyBatteryDischarge * daysInMonth[index];
+                    }
+                    return totalEnergy;
+                });
+                console.log('Monthly Energy Produced (kWh):', monthlyEnergyProduced);
+
+                // Monthly consumption (constant across months)
+                const monthlyConsumptionProfile = Array(12).fill(monthlyConsumption);
+                console.log('Monthly Consumption Profile (kWh):', monthlyConsumptionProfile);
+
+                // Load profile customization (for hourly profile)
+                let consumptionProfile;
+                const hours = Array.from({ length: 24 }, (_, i) => i);
+                if (loadProfileSelection === 'flat') {
+                    consumptionProfile = hours.map(() => dailyConsumption / 24);
+                } else if (loadProfileSelection === 'morning-peak') {
+                    consumptionProfile = hours.map(h => {
+                        if (h >= 6 && h < 10) return (dailyConsumption / 24) * 1.5;
+                        if (h >= 10 && h < 18) return (dailyConsumption / 24) * 0.8;
+                        return (dailyConsumption / 24) * 1.0;
+                    });
+                    const total = consumptionProfile.reduce((a, b) => a + b, 0);
+                    consumptionProfile = consumptionProfile.map(v => v * (dailyConsumption / total));
+                } else if (loadProfileSelection === 'evening-peak') {
+                    consumptionProfile = hours.map(h => {
+                        if (h >= 17 && h < 21) return (dailyConsumption / 24) * 1.5;
+                        if (h >= 9 && h < 17) return (dailyConsumption / 24) * 0.8;
+                        return (dailyConsumption / 24) * 1.0;
+                    });
+                    const total = consumptionProfile.reduce((a, b) => a + b, 0);
+                    consumptionProfile = consumptionProfile.map(v => v * (dailyConsumption / total));
+                } else if (loadProfileSelection === 'work-from-home') {
+                    consumptionProfile = hours.map(h => {
+                        if (h >= 9 && h < 17) return (dailyConsumption / 24) * 1.3;
+                        if (h >= 17 && h < 21) return (dailyConsumption / 24) * 1.2;
+                        return (dailyConsumption / 24) * 0.9;
+                    });
+                    const total = consumptionProfile.reduce((a, b) => a + b, 0);
+                    consumptionProfile = consumptionProfile.map(v => v * (dailyConsumption / total));
+                } else if (loadProfileSelection === 'custom') {
+                    consumptionProfile = hours.map(h => {
+                        const input = document.getElementById(`load-hour-${h}`);
+                        return parseFloat(input.value) || 0;
+                    });
+                    const total = consumptionProfile.reduce((a, b) => a + b, 0);
+                    if (total === 0) {
+                        consumptionProfile = hours.map(() => dailyConsumption / 24);
+                    } else {
+                        consumptionProfile = consumptionProfile.map(v => v * (dailyConsumption / total));
+                    }
+                }
+
+                // Simulate hourly profile (24 hours) for selected month
+                const solarProfile = hours.map(h => {
+                    const peak = dailyProduction / peakSunHours;
+                    const hourOffset = h - 12;
+                    return Math.max(0, peak * Math.exp(-(hourOffset ** 2) / 8) * efficiency);
+                });
+                let batteryCharge = addBatteries === 'yes' ? totalBatterySize * 0.5 : 0;
+                const batteryProfile = [];
+                let gridImport = 0;
+                let excessEnergy = 0;
+
+                // First pass: Calculate excess energy available for storage or export
+                hours.forEach(h => {
+                    const solar = solarProfile[h];
+                    const consumption = consumptionProfile[h];
+                    const net = solar - consumption;
+
+                    if (net > 0) {
+                        if (addBatteries === 'yes') {
+                            const chargeAmount = Math.min(net, totalBatterySize - batteryCharge);
+                            batteryCharge += chargeAmount;
+                            excessEnergy += net - chargeAmount;
+                        } else {
+                            excessEnergy += net;
+                        }
+                    } else if (net < 0 && addBatteries === 'yes') {
+                        const deficit = -net;
+                        const dischargeAmount = Math.min(deficit, batteryCharge);
+                        batteryCharge -= dischargeAmount;
+                        gridImport += deficit - dischargeAmount;
+                    } else if (net < 0) {
+                        gridImport += -net;
+                    }
+                    batteryProfile.push(batteryCharge);
+                });
+
+                // Adjust grid import using excess energy (net metering)
+                if (excessEnergy > 0) {
+                    gridImport = Math.max(0, gridImport - excessEnergy);
+                }
+
+                // Calculate net balance
+                const netBalance = dailyProduction - dailyConsumption + (addBatteries === 'yes' ? (totalBatterySize * 0.5 - batteryCharge) : 0);
+
+                // Long-term savings with degradation, maintenance, and rate increases
+                const annualConsumptionKWh = dailyConsumption * 365;
+                let annualProductionKWh = annualAverageDailyProduction * 365;
+                let annualGridImportKWh = gridImport * 365;
+                let cumulativeSavings = 0;
+                let currentRatePerKwh = ratePerKwh;
+                let currentAnnualProductionKWh = annualProductionKWh;
+                const annualMaintenanceCost = 100; // $100/year for cleaning
+                const inverterReplacementCost = 1000; // $1000 every 10 years
+                const savingsOverYears = [];
+
+                for (let year = 1; year <= 25; year++) {
+                    currentAnnualProductionKWh *= (1 - degradationRate);
+                    let degradedAnnualGridImportKWh = annualConsumptionKWh - (currentAnnualProductionKWh - (excessEnergy * 365));
+                    if (degradedAnnualGridImportKWh < 0) degradedAnnualGridImportKWh = 0;
+                    currentRatePerKwh *= (1 + utilityRateIncrease);
+                    let yearSavings;
+                    if (currentAnnualProductionKWh >= annualConsumptionKWh) {
+                        yearSavings = (annualConsumptionKWh * currentRatePerKwh);
+                    } else {
+                        const yearEnergySupplied = annualConsumptionKWh - degradedAnnualGridImportKWh;
+                        yearSavings = yearEnergySupplied * currentRatePerKwh;
+                    }
+                    yearSavings -= annualMaintenanceCost;
+                    if (year % 10 === 0) yearSavings -= inverterReplacementCost;
+                    yearSavings = Math.max(0, yearSavings);
+                    cumulativeSavings += yearSavings;
+                    savingsOverYears.push({ year, savings: yearSavings, cumulativeSavings });
+                }
+
+                // First-year savings (for display)
+                const firstYearSavings = savingsOverYears[0].savings;
+
+                // Environmental savings
+                const annualCo2Avoided = annualProductionKWh * 0.0003856;
+                const totalCo2Avoided = annualCo2Avoided * 25;
+                const treesPerMetricTon = 45.92;
+                const totalTrees = totalCo2Avoided * treesPerMetricTon;
+
+                // Display results
+                document.getElementById('daily-production').textContent = dailyProduction.toFixed(2);
+                document.getElementById('daily-consumption').textContent = dailyConsumption.toFixed(2);
+                if (addBatteries === 'yes') {
+                    document.getElementById('battery-status').textContent = batteryCharge.toFixed(2);
+                }
+                document.getElementById('net-balance').textContent = netBalance.toFixed(2);
+                document.getElementById('grid-import').textContent = gridImport.toFixed(2);
+                document.getElementById('results').style.display = 'block';
+
+                // Add comment for grid import
+                const gridImportComment = addBatteries === 'yes' 
+                    ? 'Power from grid after solar and battery power consumed'
+                    : 'Power from grid after solar power consumed';
+                document.getElementById('grid-import-comment').textContent = gridImportComment;
+
+                // Display savings if positive
+                const savingsSection = document.getElementById('savings-section');
+                if (firstYearSavings > 0) {
+                    savingsSection.style.display = 'block';
+                    document.getElementById('annual-savings').textContent = firstYearSavings.toFixed(2);
+                    const savingsMessage = addBatteries === 'yes' 
+                        ? "By using solar + battery, you're slashing your electricity costs!"
+                        : "By using solar, you're slashing your electricity costs!";
+                    document.getElementById('savings-message').textContent = savingsMessage;
+                    document.getElementById('environmental-savings').textContent = 
+                        `🌱 Over 25 years, you'll avoid ${totalCo2Avoided.toFixed(1)} metric tons of CO2, equivalent to planting ${Math.round(totalTrees)} trees!`;
+                } else {
+                    savingsSection.style.display = 'none';
+                }
+
+                // Long-term cumulative savings
+                document.getElementById('savings-year-1').textContent = savingsOverYears[0].cumulativeSavings.toFixed(2);
+                document.getElementById('savings-year-5').textContent = savingsOverYears[4].cumulativeSavings.toFixed(2);
+                document.getElementById('savings-year-10').textContent = savingsOverYears[9].cumulativeSavings.toFixed(2);
+                document.getElementById('savings-year-25').textContent = savingsOverYears[24].cumulativeSavings.toFixed(2);
+
+                // Set canvas sizes based on container width
+                const barCanvas = document.getElementById('barChart');
+                const lineCanvas = document.getElementById('lineChart');
+                const monthlyEnergyCanvas = document.getElementById('monthlyEnergyChart');
+                const barContainer = barCanvas.parentElement;
+                const lineContainer = lineCanvas.parentElement;
+                const monthlyEnergyContainer = monthlyEnergyCanvas.parentElement;
+
+                const setCanvasSize = (canvas, container) => {
+                    const width = container.clientWidth - 20;
+                    canvas.width = width;
+                    canvas.height = window.innerWidth <= 768 ? 250 : 300;
+                };
+
+                setCanvasSize(barCanvas, barContainer);
+                setCanvasSize(lineCanvas, lineContainer);
+                setCanvasSize(monthlyEnergyCanvas, monthlyEnergyContainer);
+
+                // Render charts
+                try {
+                    // Bar Chart: Daily Energy Overview (Animated)
+                    const barCtx = barCanvas.getContext('2d');
+                    barCtx.clearRect(0, 0, barCanvas.width, barCanvas.height);
+                    const barData = addBatteries === 'yes' 
+                        ? [dailyProduction, dailyConsumption, batteryCharge, netBalance, gridImport]
+                        : [dailyProduction, dailyConsumption, netBalance, gridImport];
+                    const barLegendLabels = addBatteries === 'yes' 
+                        ? ['Solar Production', 'Consumption', 'Battery Charge', 'Net Balance', 'Grid Import']
+                        : ['Solar Production', 'Consumption', 'Net Balance', 'Grid Import'];
+                    const barColors = addBatteries === 'yes' 
+                        ? ['#68d391', '#f56565', '#4c51bf', '#ed8936', '#a0aec0']
+                        : ['#68d391', '#f56565', '#ed8936', '#a0aec0'];
+                    const maxBarValue = Math.max(...barData, 0) * 1.2;
+                    const barWidth = barCanvas.width <= 400 ? 40 : 60;
+                    const barSpacing = 20;
+                    const leftMargin = 100;
+
+                    // Create bar chart legend
+                    const barLegend = document.getElementById('bar-chart-legend');
+                    barLegend.innerHTML = '';
+                    barLegendLabels.forEach((label, index) => {
+                        const legendItem = document.createElement('div');
+                        legendItem.className = 'legend-item';
+                        legendItem.innerHTML = `
+                            <div class="legend-color" style="background-color: ${barColors[index]};"></div>
+                            <span>${label}</span>
+                        `;
+                        barLegend.appendChild(legendItem);
+                    });
+
+                    // Draw axes
+                    barCtx.strokeStyle = '#000';
+                    barCtx.beginPath();
+                    barCtx.moveTo(leftMargin, 50);
+                    barCtx.lineTo(leftMargin, barCanvas.height - 50);
+                    barCtx.stroke();
+                    barCtx.textAlign = 'center';
+                    barCtx.fillStyle = '#000';
+                    barCtx.font = '12px Arial';
+                    barCtx.save();
+                    barCtx.translate(leftMargin - 40, barCanvas.height / 2);
+                    barCtx.rotate(-Math.PI / 2);
+                    barCtx.fillText('Energy (kWh)', 0, 0);
+                    barCtx.restore();
+                    for (let i = 0; i <= 5; i++) {
+                        const yValue = (maxBarValue / 5) * i;
+                        const yPos = (barCanvas.height - 50) - (i * ((barCanvas.height - 100) / 5));
+                        barCtx.textAlign = 'right';
+                        barCtx.fillText(yValue.toFixed(1), leftMargin - 10, yPos + 5);
+                    }
+
+                    // Animate bars
+                    let barProgress = 0;
+                    function animateBars() {
+                        barCtx.clearRect(leftMargin, 0, barCanvas.width - leftMargin, barCanvas.height - 50);
+                        barProgress += 0.02;
+                        if (barProgress > 1) barProgress = 1;
+
+                        barData.forEach((value, index) => {
+                            const x = leftMargin + index * (barWidth + barSpacing);
+                            const height = (value / maxBarValue) * (barCanvas.height - 100) * barProgress;
+                            const y = (barCanvas.height - 50) - height;
+
+                            barCtx.fillStyle = barColors[index];
+                            barCtx.fillRect(x, y, barWidth, height);
+
+                            if (barProgress === 1) {
+                                barCtx.fillStyle = '#000';
+                                barCtx.textAlign = 'center';
+                                barCtx.fillText(value.toFixed(1), x + barWidth / 2, y - 10);
+                            }
+                        });
+
+                        if (barProgress < 1) {
+                            requestAnimationFrame(animateBars);
+                        }
+                    }
+                    animateBars();
+                    console.log('Bar chart animation started');
+
+                    // Line Chart: Hourly Energy Profile (Static)
+                    const lineCtx = lineCanvas.getContext('2d');
+                    lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+                    const maxLineValue = Math.max(...solarProfile, ...consumptionProfile, ...(addBatteries === 'yes' ? batteryProfile : []), 0) * 1.2;
+                    const xStep = (lineCanvas.width - leftMargin - 50) / 23;
+
+                    // Function to draw hourly chart
+                    const drawHourlyChart = () => {
+                        lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+                        lineCtx.strokeStyle = '#000';
+                        lineCtx.beginPath();
+                        lineCtx.moveTo(leftMargin, lineCanvas.height - 50);
+                        lineCtx.lineTo(lineCanvas.width - 50, lineCanvas.height - 50);
+                        lineCtx.stroke();
+                        lineCtx.fillStyle = '#000';
+                        lineCtx.font = '12px Arial';
+                        lineCtx.textAlign = 'center';
+                        const labelInterval = 6;
+                        hours.forEach((hour, index) => {
+                            if (index % labelInterval === 0) {
+                                const x = leftMargin + index * xStep;
+                                lineCtx.fillText(hour, x, lineCanvas.height - 30);
+                            }
+                        });
+                        lineCtx.fillText('Hour of Day', lineCanvas.width / 2, lineCanvas.height - 10);
+
+                        lineCtx.beginPath();
+                        lineCtx.moveTo(leftMargin, 50);
+                        lineCtx.lineTo(leftMargin, lineCanvas.height - 50);
+                        lineCtx.stroke();
+                        lineCtx.save();
+                        lineCtx.translate(leftMargin - 40, lineCanvas.height / 2);
+                        lineCtx.rotate(-Math.PI / 2);
+                        lineCtx.fillText('Energy (kWh)', 0, 0);
+                        lineCtx.restore();
+                        for (let i = 0; i <= 5; i++) {
+                            const yValue = (maxLineValue / 5) * i;
+                            const yPos = (lineCanvas.height - 50) - (i * ((lineCanvas.height - 100) / 5));
+                            lineCtx.textAlign = 'right';
+                            lineCtx.fillText(yValue.toFixed(1), leftMargin - 10, yPos + 5);
+                        }
+
+                        const drawLine = (data, color) => {
+                            lineCtx.beginPath();
+                            lineCtx.strokeStyle = color;
+                            lineCtx.lineWidth = 2;
+                            for (let i = 0; i < 24; i++) {
+                                const x = leftMargin + i * xStep;
+                                const y = (lineCanvas.height - 50) - (data[i] / maxLineValue) * (lineCanvas.height - 100);
+                                if (i === 0) {
+                                    lineCtx.moveTo(x, y);
+                                } else {
+                                    lineCtx.lineTo(x, y);
+                                }
+                            }
+                            lineCtx.stroke();
+                        };
+
+                        drawLine(solarProfile, '#68d391');
+                        drawLine(consumptionProfile, '#f56565');
+                        if (addBatteries === 'yes') {
+                            drawLine(batteryProfile, '#4c51bf');
+                        }
+                    };
+
+                    // Initial draw of hourly chart
+                    drawHourlyChart();
+                    console.log('Line chart rendered statically');
+
+                    // Hourly chart hover functionality
+                    const drawHourlyTooltip = (event) => {
+                        const rect = lineCanvas.getBoundingClientRect();
+                        const mouseX = event.clientX - rect.left;
+                        const mouseY = event.clientY - rect.top;
+
+                        if (mouseX < leftMargin || mouseX > lineCanvas.width - 50 || mouseY < 50 || mouseY > lineCanvas.height - 50) {
+                            drawHourlyChart();
+                            return;
+                        }
+
+                        const hourIndex = Math.round((mouseX - leftMargin) / xStep);
+                        if (hourIndex < 0 || hourIndex >= 24) {
+                            drawHourlyChart();
+                            return;
+                        }
+
+                        const solarValue = solarProfile[hourIndex];
+                        const consumptionValue = consumptionProfile[hourIndex];
+                        const batteryValue = addBatteries === 'yes' ? batteryProfile[hourIndex] : null;
+
+                        drawHourlyChart();
+
+                        const x = leftMargin + hourIndex * xStep;
+                        lineCtx.beginPath();
+                        lineCtx.strokeStyle = '#999';
+                        lineCtx.lineWidth = 1;
+                        lineCtx.moveTo(x, 50);
+                        lineCtx.lineTo(x, lineCanvas.height - 50);
+                        lineCtx.stroke();
+
+                        let tooltipX = x + 10;
+                        let tooltipY = 60;
+                        const tooltipPadding = 5;
+                        const lineHeight = 15;
+
+                        const tooltipLines = [
+                            `Hour: ${hourIndex}`,
+                            `Solar: ${solarValue.toFixed(2)} kWh`,
+                            `Consumption: ${consumptionValue.toFixed(2)} kWh`,
+                        ];
+                        if (batteryValue !== null) {
+                            tooltipLines.push(`Battery: ${batteryValue.toFixed(2)} kWh`);
+                        }
+
+                        const tooltipWidth = Math.max(...tooltipLines.map(line => lineCtx.measureText(line).width)) + 2 * tooltipPadding;
+                        const tooltipHeight = tooltipLines.length * lineHeight + 2 * tooltipPadding;
+
+                        if (tooltipX + tooltipWidth > lineCanvas.width - 10) {
+                            tooltipX = x - tooltipWidth - 10;
+                        }
+                        if (tooltipY + tooltipHeight > lineCanvas.height - 50) {
+                            tooltipY = lineCanvas.height - 50 - tooltipHeight - 10;
+                        }
+
+                        lineCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                        lineCtx.fillRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+
+                        lineCtx.fillStyle = '#fff';
+                        lineCtx.textAlign = 'left';
+                        tooltipLines.forEach((line, index) => {
+                            lineCtx.fillText(line, tooltipX + tooltipPadding, tooltipY + tooltipPadding + (index + 1) * lineHeight);
+                        });
+                    };
+
+                    lineCanvas.addEventListener('mousemove', drawHourlyTooltip);
+                    lineCanvas.addEventListener('mouseout', drawHourlyChart);
+
+                    // Line Chart: Monthly Energy Production vs. Consumption (Static)
+                    const monthlyEnergyCtx = monthlyEnergyCanvas.getContext('2d');
+                    monthlyEnergyCtx.clearRect(0, 0, monthlyEnergyCanvas.width, monthlyEnergyCanvas.height);
+                    const maxMonthlyValue = Math.max(...monthlyEnergyProduced, ...monthlyConsumptionProfile, 0) * 1.2;
+                    const xStepMonthly = (monthlyEnergyCanvas.width - leftMargin - 50) / 11;
+                    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                    // Function to draw monthly chart
+                    const drawMonthlyChart = () => {
+                        monthlyEnergyCtx.clearRect(0, 0, monthlyEnergyCanvas.width, monthlyEnergyCanvas.height);
+                        monthlyEnergyCtx.strokeStyle = '#000';
+                        monthlyEnergyCtx.beginPath();
+                        monthlyEnergyCtx.moveTo(leftMargin, monthlyEnergyCanvas.height - 50);
+                        monthlyEnergyCtx.lineTo(monthlyEnergyCanvas.width - 50, monthlyEnergyCanvas.height - 50);
+                        monthlyEnergyCtx.stroke();
+                        monthlyEnergyCtx.fillStyle = '#000';
+                        monthlyEnergyCtx.font = '12px Arial';
+                        monthlyEnergyCtx.textAlign = 'center';
+                        monthLabels.forEach((label, index) => {
+                            const x = leftMargin + index * xStepMonthly;
+                            monthlyEnergyCtx.fillText(label, x, monthlyEnergyCanvas.height - 30);
+                        });
+                        monthlyEnergyCtx.fillText('Month', monthlyEnergyCanvas.width / 2, monthlyEnergyCanvas.height - 10);
+
+                        monthlyEnergyCtx.beginPath();
+                        monthlyEnergyCtx.moveTo(leftMargin, 50);
+                        monthlyEnergyCtx.lineTo(leftMargin, monthlyEnergyCanvas.height - 50);
+                        monthlyEnergyCtx.stroke();
+                        monthlyEnergyCtx.save();
+                        monthlyEnergyCtx.translate(leftMargin - 40, monthlyEnergyCanvas.height / 2);
+                        monthlyEnergyCtx.rotate(-Math.PI / 2);
+                        monthlyEnergyCtx.fillText('Energy (kWh)', 0, 0);
+                        monthlyEnergyCtx.restore();
+                        for (let i = 0; i <= 5; i++) {
+                            const yValue = (maxMonthlyValue / 5) * i;
+                            const yPos = (monthlyEnergyCanvas.height - 50) - (i * ((monthlyEnergyCanvas.height - 100) / 5));
+                            monthlyEnergyCtx.textAlign = 'right';
+                            monthlyEnergyCtx.fillText(yValue.toFixed(0), leftMargin - 10, yPos + 5);
+                        }
+
+                        const drawMonthlyLine = (data, color) => {
+                            monthlyEnergyCtx.beginPath();
+                            monthlyEnergyCtx.strokeStyle = color;
+                            monthlyEnergyCtx.lineWidth = 2;
+                            for (let i = 0; i < 12; i++) {
+                                const x = leftMargin + i * xStepMonthly;
+                                const y = (monthlyEnergyCanvas.height - 50) - (data[i] / maxMonthlyValue) * (monthlyEnergyCanvas.height - 100);
+                                if (i === 0) {
+                                    monthlyEnergyCtx.moveTo(x, y);
+                                } else {
+                                    monthlyEnergyCtx.lineTo(x, y);
+                                }
+                            }
+                            monthlyEnergyCtx.stroke();
+                        };
+
+                        drawMonthlyLine(monthlyEnergyProduced, '#4299e1');
+                        drawMonthlyLine(monthlyConsumptionProfile, '#f56565');
+                    };
+
+                    // Initial draw of monthly chart
+                    drawMonthlyChart();
+                    console.log('Monthly energy chart rendered statically');
+
+                    // Monthly chart hover functionality
+                    const drawMonthlyTooltip = (event) => {
+                        console.log('Monthly tooltip triggered');
+                        const rect = monthlyEnergyCanvas.getBoundingClientRect();
+                        const mouseX = event.clientX - rect.left;
+                        const mouseY = event.clientY - rect.top;
+                        console.log(`Mouse position: X=${mouseX}, Y=${mouseY}`);
+
+                        // Relaxed bounds check to ensure tooltip triggers
+                        if (mouseX < leftMargin - 10 || mouseX > monthlyEnergyCanvas.width - 40 || mouseY < 40 || mouseY > monthlyEnergyCanvas.height - 40) {
+                            console.log('Mouse outside chart area');
+                            drawMonthlyChart();
+                            return;
+                        }
+
+                        const monthIndex = Math.round((mouseX - leftMargin) / xStepMonthly);
+                        console.log(`Calculated monthIndex: ${monthIndex}`);
+                        if (monthIndex < 0 || monthIndex >= 12) {
+                            console.log('Invalid monthIndex');
+                            drawMonthlyChart();
+                            return;
+                        }
+
+                        const producedValue = monthlyEnergyProduced[monthIndex];
+                        const consumptionValue = monthlyConsumptionProfile[monthIndex];
+                        console.log(`Tooltip values: Produced=${producedValue}, Consumption=${consumptionValue}`);
+
+                        drawMonthlyChart();
+
+                        const x = leftMargin + monthIndex * xStepMonthly;
+                        monthlyEnergyCtx.beginPath();
+                        monthlyEnergyCtx.strokeStyle = '#999';
+                        monthlyEnergyCtx.lineWidth = 1;
+                        monthlyEnergyCtx.moveTo(x, 50);
+                        monthlyEnergyCtx.lineTo(x, monthlyEnergyCanvas.height - 50);
+                        monthlyEnergyCtx.stroke();
+
+                        let tooltipX = x + 10;
+                        let tooltipY = 60;
+                        const tooltipPadding = 5;
+                        const lineHeight = 15;
+
+                        const tooltipLines = [
+                            `Month: ${monthLabels[monthIndex]}`,
+                            `Produced: ${producedValue.toFixed(0)} kWh`,
+                            `Consumption: ${consumptionValue.toFixed(0)} kWh`,
+                        ];
+
+                        const tooltipWidth = Math.max(...tooltipLines.map(line => monthlyEnergyCtx.measureText(line).width)) + 2 * tooltipPadding;
+                        const tooltipHeight = tooltipLines.length * lineHeight + 2 * tooltipPadding;
+
+                        if (tooltipX + tooltipWidth > monthlyEnergyCanvas.width - 10) {
+                            tooltipX = x - tooltipWidth - 10;
+                        }
+                        if (tooltipY + tooltipHeight > monthlyEnergyCanvas.height - 50) {
+                            tooltipY = monthlyEnergyCanvas.height - 50 - tooltipHeight - 10;
+                        }
+
+                        console.log(`Drawing tooltip at X=${tooltipX}, Y=${tooltipY}, Width=${tooltipWidth}, Height=${tooltipHeight}`);
+                        monthlyEnergyCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                        monthlyEnergyCtx.fillRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+
+                        monthlyEnergyCtx.fillStyle = '#fff';
+                        monthlyEnergyCtx.textAlign = 'left';
+                        tooltipLines.forEach((line, index) => {
+                            monthlyEnergyCtx.fillText(line, tooltipX + tooltipPadding, tooltipY + tooltipPadding + (index + 1) * lineHeight);
+                        });
+                    };
+
+                    // Remove any existing listeners to prevent duplicates
+                    monthlyEnergyCanvas.removeEventListener('mousemove', drawMonthlyTooltip);
+                    monthlyEnergyCanvas.removeEventListener('mouseout', drawMonthlyChart);
+                    // Add event listeners
+                    monthlyEnergyCanvas.addEventListener('mousemove', drawMonthlyTooltip);
+                    monthlyEnergyCanvas.addEventListener('mouseout', () => {
+                        console.log('Mouse out of monthly chart');
+                        drawMonthlyChart();
+                    });
+
+                    console.log('All charts rendered successfully');
+                } catch (chartError) {
+                    console.error('Error rendering charts:', chartError);
+                }
+            } catch (error) {
+                console.error('Simulation error:', error);
+            }
+        }
+
+        // Toggle battery selection visibility and custom battery input
+        const addBatteriesRadios = document.querySelectorAll('input[name="add-batteries"]');
+        const batterySelection = document.getElementById('battery-selection');
+        const batteryQuantityGroup = document.getElementById('battery-quantity-group');
+        const customBatteryCapacity = document.getElementById('custom-battery-capacity');
+        const batteryModel = document.getElementById('battery-model');
+
+        addBatteriesRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'yes') {
+                    batterySelection.classList.remove('hidden');
+                    batteryQuantityGroup.classList.remove('hidden');
+                    if (batteryModel.value === 'custom') {
+                        customBatteryCapacity.classList.remove('hidden');
+                    } else {
+                        customBatteryCapacity.classList.add('hidden');
+                    }
+                } else {
+                    batterySelection.classList.add('hidden');
+                    batteryQuantityGroup.classList.add('hidden');
+                    customBatteryCapacity.classList.add('hidden');
+                }
+                simulateSolar();
+            });
+        });
+
+        batteryModel.addEventListener('change', () => {
+            if (batteryModel.value === 'custom') {
+                customBatteryCapacity.classList.remove('hidden');
+            } else {
+                customBatteryCapacity.classList.add('hidden');
+            }
+            const capacity = batteryModel.value === 'custom' 
+                ? parseFloat(document.getElementById('custom-battery-kwh').value) 
+                : parseFloat(batteryModel.value);
+            const qty = parseInt(document.getElementById('battery-quantity').value);
+            document.getElementById('total-battery-capacity').textContent = `Total Capacity: ${(capacity * qty).toFixed(2)} kWh`;
+            simulateSolar();
+        });
+
+        // Load profile customization
+        const loadProfileSelection = document.getElementById('load-profile-selection');
+        const customLoadProfile = document.getElementById('custom-load-profile');
+        const loadProfileGrid = document.getElementById('load-profile-grid');
+
+        for (let h = 0; h < 24; h++) {
+            const hourDiv = document.createElement('div');
+            hourDiv.className = 'load-profile-hour';
+            hourDiv.innerHTML = `
+                <label>${h}:00</label>
+                <input type="number" id="load-hour-${h}" min="0" step="0.1" value="0" class="w-full">
+            `;
+            loadProfileGrid.appendChild(hourDiv);
+        }
+
+        loadProfileSelection.addEventListener('change', () => {
+            if (loadProfileSelection.value === 'custom') {
+                customLoadProfile.classList.remove('hidden');
+            } else {
+                customLoadProfile.classList.add('hidden');
+            }
+            simulateSolar();
+        });
+
+        // Update total capacity display and re-run simulation on change
+        const pvSizeSlider = document.getElementById('pv-size');
+        const batteryQuantity = document.getElementById('battery-quantity');
+        const customBatteryKwh = document.getElementById('custom-battery-kwh');
+        const monthlyBillInput = document.getElementById('monthly-bill');
+        const ratePerKwhInput = document.getElementById('rate-per-kwh');
+        const utilityRateIncreaseInput = document.getElementById('utility-rate-increase');
+        const monthSelection = document.getElementById('month-selection');
+        const pvSizeValue = document.getElementById('pv-size-value');
+        const totalBatteryCapacity = document.getElementById('total-battery-capacity');
+
+        pvSizeSlider.addEventListener('input', () => {
+            pvSizeValue.textContent = `${pvSizeSlider.value} kW`;
+            simulateSolar();
+        });
+
+        batteryQuantity.addEventListener('input', () => {
+            const capacity = batteryModel.value === 'custom' 
+                ? parseFloat(document.getElementById('custom-battery-kwh').value) 
+                : parseFloat(batteryModel.value);
+            let qty = parseInt(batteryQuantity.value);
+            if (qty < 1) {
+                qty = 1;
+                batteryQuantity.value = 1;
+            }
+            totalBatteryCapacity.textContent = `Total Capacity: ${(capacity * qty).toFixed(2)} kWh`;
+            simulateSolar();
+        });
+
+        customBatteryKwh.addEventListener('input', () => {
+            const capacity = parseFloat(customBatteryKwh.value);
+            const qty = parseInt(batteryQuantity.value);
+            totalBatteryCapacity.textContent = `Total Capacity: ${(capacity * qty).toFixed(2)} kWh`;
+            simulateSolar();
+        });
+
+        monthlyBillInput.addEventListener('input', simulateSolar);
+        ratePerKwhInput.addEventListener('input', simulateSolar);
+        utilityRateIncreaseInput.addEventListener('input', simulateSolar);
+        monthSelection.addEventListener('change', simulateSolar);
+
+        for (let h = 0; h < 24; h++) {
+            document.getElementById(`load-hour-${h}`).addEventListener('input', simulateSolar);
+        }
+
+        pvSizeValue.textContent = `${pvSizeSlider.value} kW`;
+
+        window.addEventListener('resize', () => {
+            const barCanvas = document.getElementById('barChart');
+            const lineCanvas = document.getElementById('lineChart');
+            const monthlyEnergyCanvas = document.getElementById('monthlyEnergyChart');
+            if (barCanvas && lineCanvas && monthlyEnergyCanvas && document.getElementById('results').style.display === 'block') {
+                const barContainer = barCanvas.parentElement;
+                const lineContainer = lineCanvas.parentElement;
+                const monthlyEnergyContainer = monthlyEnergyCanvas.parentElement;
+
+                const setCanvasSize = (canvas, container) => {
+                    const width = container.clientWidth - 20;
+                    canvas.width = width;
+                    canvas.height = window.innerWidth <= 768 ? 250 : 300;
+                };
+
+                setCanvasSize(barCanvas, barContainer);
+                setCanvasSize(lineCanvas, lineContainer);
+                setCanvasSize(monthlyEnergyCanvas, monthlyEnergyContainer);
+
+                simulateSolar();
+            }
+        });
+
+        // Run initial simulation
+        simulateSolar();
+    </script>
+</body>
+</html>
