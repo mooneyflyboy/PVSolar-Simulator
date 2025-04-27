@@ -28,6 +28,19 @@
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
         }
+        .header p {
+            font-size: 1rem;
+        }
+        .mobile-orientation {
+            display: none;
+            font-style: italic;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            color: white;
+            background-color: black;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
         .container {
             max-width: 900px;
             margin: 2rem auto;
@@ -230,6 +243,13 @@
             .summary-container {
                 flex-direction: column;
             }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .mobile-orientation {
+                display: block;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -237,6 +257,7 @@
     <div class="header">
         <h1>Discover Your Solar Savings</h1>
         <p>Explore how solar power can reduce your energy costs in the DFW Metroplex</p>
+        <p class="mobile-orientation">For best viewing on mobile, please hold your device horizontally.</p>
     </div>
     <div class="container">
         <div class="input-section">
