@@ -86,6 +86,7 @@
         #battery-size-div, #buyback-rate-div {
             margin-top: 0.5rem;
             padding-left: 1rem;
+            display: none;
         }
         .toggle-container {
             display: flex;
@@ -172,8 +173,20 @@
             font-size: 0.9rem;
             color: #555;
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
             display: none;
+        }
+        #payback-period {
+            font-size: 1rem;
+            color: #333;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        #payback-note {
+            font-size: 0.8rem;
+            color: #555;
+            text-align: center;
+            margin-bottom: 1.5rem;
         }
         #energy-chart {
             background: white;
@@ -290,7 +303,7 @@
                     <option value="buyback">Buyback at Specific Rate</option>
                     <option value="no_credit">No Credit</option>
                 </select>
-                <div id="buyback-rate-div" style="display: none;">
+                <div id="buyback-rate-div">
                     <label for="buyback-rate">Buyback Rate ($/kWh)</label>
                     <input type="number" id="buyback-rate" name="buyback-rate" min="0" step="0.01" value="0.0725">
                 </div>
@@ -321,7 +334,7 @@
                     </label>
                     <span class="toggle-label" id="battery-label">No</span>
                 </div>
-                <div id="battery-size-div" style="display: none;">
+                <div id="battery-size-div">
                     <label for="battery-size">Battery Size (kWh)</label>
                     <input type="number" id="battery-size" name="battery-size" min="0" step="0.1" value="10">
                 </div>
@@ -341,6 +354,8 @@
                 </div>
             </div>
             <p id="excess-statement">Savings results include income from Net Metering option selected when appropriate.</p>
+            <p id="payback-period">Estimated Payback Period: -</p>
+            <p id="payback-note">Based on Net Cost including the 30% Federal Investment Tax Credit</p>
             <canvas id="energy-chart"></canvas>
             <div class="summary-container">
                 <div id="monthly-summary"></div>
@@ -452,8 +467,6 @@
                 });
             }
 
-            console.log('Hourly Data:', hourly_data);
-
             return {
                 energy_drawn,
                 energy_fed,
@@ -468,6 +481,7 @@
         const pvSizeValue = document.getElementById('pv-size-value');
         pvSizeSlider.addEventListener('input', () => {
             pvSizeValue.textContent = `${pvSizeSlider.value} kW`;
+            calculateSavings();
         });
 
         // Battery toggle logic
@@ -480,9 +494,11 @@
             calculateSavings();
         });
 
-        // Event listeners for dynamic form elements
-        document.getElementById('excess-handling').addEventListener('change', function() {
-            document.getElementById('buyback-rate-div').style.display = this.value === 'buyback' ? 'block' : 'none';
+        // Excess handling logic
+        const excessHandlingSelect = document.getElementById('excess-handling');
+        const buybackRateDiv = document.getElementById('buyback-rate-div');
+        excessHandlingSelect.addEventListener('change', function() {
+            buybackRateDiv.style.display = this.value === 'buyback' ? 'block' : 'none';
             calculateSavings();
         });
 
@@ -516,30 +532,30 @@
         }
 
         function calculateSavings() {
-            console.log('Starting calculateSavings');
             const formData = getFormData();
             if (!formData) {
                 alert('Error reading form data.');
                 return;
             }
 
-            const { pv_size, has_battery, battery_size, monthly_bill, price_per_kwh, usage_pattern, excess_handling, buyback_rate } = formData;
+            const { pv_size, has_battery, battery_size, monthly_bill, price_per_kwh, usage_pattern, excess_handling, buyback_rate, selected_month } = formData;
 
             if (!pv_size || !monthly_bill || !price_per_kwh) {
                 document.getElementById('first-year-savings').textContent = '-';
                 document.getElementById('25-year-savings').textContent = '-';
                 document.getElementById('excess-statement').style.display = 'none';
+                document.getElementById('payback-period').textContent = 'Estimated Payback Period: -';
                 document.getElementById('monthly-summary').innerHTML = '';
                 document.getElementById('environmental-impact').innerHTML = '';
                 if (chart) chart.destroy();
                 return;
             }
-            if (has_battery && !battery_size) {
-                alert('Please specify battery size.');
+            if (has_battery && (!battery_size || battery_size <= 0)) {
+                alert('Please specify a valid battery size.');
                 return;
             }
-            if (excess_handling === 'buyback' && !buyback_rate) {
-                alert('Please specify buyback rate.');
+            if (excess_handling === 'buyback' && (!buyback_rate || buyback_rate <= 0)) {
+                alert('Please specify a valid buyback rate.');
                 return;
             }
 
@@ -603,8 +619,25 @@
                     total_savings_25 += annual_savings;
                 }
 
+                // Calculate net system cost (not displayed)
+                const pv_cost = pv_size * 2700; // $2.70/W = $2700/kW
+                const battery_cost = has_battery ? battery_size * 1300 : 0; // $1300/kWh
+                const total_cost = pv_cost + battery_cost;
+                const net_cost = total_cost * 0.7; // Apply 30% ITC
+
+                // Calculate payback period
+                let payback_text = 'Estimated Payback Period: -';
+                if (first_year_savings > 0) {
+                    const payback_years = net_cost / first_year_savings;
+                    const years = Math.floor(payback_years);
+                    const months = Math.round((payback_years - years) * 12);
+                    payback_text = `Estimated Payback Period: ${years} Year${years !== 1 ? 's' : ''}${months > 0 ? `, ${months} Month${months !== 1 ? 's' : ''}` : ''}`;
+                }
+
+                // Update UI
                 document.getElementById('first-year-savings').textContent = `$${first_year_savings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 document.getElementById('25-year-savings').textContent = `$${total_savings_25.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                document.getElementById('payback-period').textContent = payback_text;
 
                 // Display excess statement if applicable
                 if ((excess_handling === 'net_metering' || excess_handling === 'buyback') && annual_excess_energy > 0) {
@@ -615,22 +648,21 @@
                     document.getElementById('excess-statement').style.display = 'none';
                 }
 
-                updateChart(annual_solar_production, annual_battery_production);
+                updateChart(annual_solar_production, annual_battery_production, selected_month);
             } catch (error) {
                 console.error('Error in calculateSavings:', error);
                 alert('An error occurred during calculation. Check console for details.');
             }
         }
 
-        function updateChart(annual_solar_production, annual_battery_production) {
-            console.log('Starting updateChart');
+        function updateChart(annual_solar_production, annual_battery_production, selected_month) {
             const formData = getFormData();
             if (!formData) {
                 console.error('No form data available for chart update');
                 return;
             }
 
-            const { pv_size, has_battery, battery_size, monthly_bill, price_per_kwh, usage_pattern, selected_month } = formData;
+            const { pv_size, has_battery, battery_size, monthly_bill, price_per_kwh, usage_pattern } = formData;
             try {
                 const daily_consumption = (monthly_bill / price_per_kwh) / (365 / 12);
                 const solar_hourly = solar_profiles[selected_month].map(x => x * pv_size);
@@ -760,6 +792,8 @@
         try {
             document.getElementById('month').value = new Date().getMonth();
             pvSizeValue.textContent = `${pvSizeSlider.value} kW`;
+            buybackRateDiv.style.display = 'none'; // Ensure buyback rate is hidden initially
+            batterySizeDiv.style.display = 'none'; // Ensure battery size is hidden initially
             calculateSavings();
         } catch (error) {
             console.error('Error during initial setup:', error);
