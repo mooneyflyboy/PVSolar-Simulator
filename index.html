@@ -8,12 +8,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts: Roboto -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
+            background-color: transparent; /* Transparent background */
         }
         .card {
             border-radius: 10px;
@@ -32,13 +34,52 @@
         .form-check {
             margin-bottom: 10px;
         }
+        /* Impact Card Styling */
+        .impact-card {
+            background-color: #f8f9fa; /* Subtle shading */
+        }
+        .impact-section {
+            padding: 0 15px;
+        }
+        .impact-section h6 {
+            color: #28a745;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .impact-item {
+            margin-bottom: 10px;
+        }
+        .env-impact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .env-impact-item i {
+            color: #28a745; /* Green color for icons */
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        .env-impact-item span {
+            font-size: 1em;
+        }
+        .divider {
+            border-right: 1px solid #e0e0e0;
+        }
+        @media (max-width: 767px) {
+            .divider {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <header class="text-center mb-4">
             <h1>Solar Simulation Tool</h1>
-            <p class="lead">Explore how solar energy can impact your daily energy usage in the DFW area.</p>
+            <p class="lead">Explore how solar energy can impact your daily energy usage and savings in the DFW area.</p>
         </header>
 
         <!-- Energy Usage Card -->
@@ -121,7 +162,7 @@
                     <div class="col-md-6 mb-3">
                         <label for="compensation" class="form-label">Compensation Method</label>
                         <select class="form-select" id="compensation">
-                            <option value="netMetering">Net Metering</option>
+                            <option value="netMetering" selected>Net Metering</option>
                             <option value="buyback">Buyback</option>
                             <option value="noCredit">No Credit</option>
                         </select>
@@ -145,7 +186,7 @@
                             <option value="1">January</option>
                             <option value="2">February</option>
                             <option value="3">March</option>
-                            <option value="4">April</option>
+                            <option value="4" selected>April</option>
                             <option value="5">May</option>
                             <option value="6">June</option>
                             <option value="7">July</option>
@@ -160,8 +201,53 @@
             </div>
         </div>
 
-        <!-- Chart Card -->
-        <div class="card mb-4">
+        <!-- Combined Impact Card with Shading -->
+        <div class="card mb-4 impact-card">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Financial Impact Section -->
+                    <div class="col-md-6 impact-section divider">
+                        <h6>Financial Impact</h6>
+                        <div class="impact-item">
+                            <label class="form-label">First-Year Savings ($)</label>
+                            <p id="firstYearSavings" class="fw-bold">0</p>
+                        </div>
+                        <div class="impact-item">
+                            <label class="form-label">25-Year Savings ($)</label>
+                            <p id="twentyFiveYearSavings" class="fw-bold">0</p>
+                        </div>
+                    </div>
+                    <!-- Environmental Impact Section -->
+                    <div class="col-md-6 impact-section">
+                        <h6>Environmental Impact</h6>
+                        <div class="env-impact-item">
+                            <i class="fas fa-leaf"></i>
+                            <span>CO2 Reduction: <span id="co2Reduction">0</span> lbs</span>
+                        </div>
+                        <div class="env-impact-item">
+                            <i class="fas fa-tree"></i>
+                            <span>Equivalent Trees Planted: <span id="treesPlanted">0</span></span>
+                        </div>
+                        <div class="env-impact-item">
+                            <i class="fas fa-car"></i>
+                            <span>Equivalent Miles Driven: <span id="milesDriven">0</span></span>
+                        </div>
+                        <div class="env-impact-item">
+                            <i class="fas fa-plug"></i>
+                            <span>Reducing Dependency on Grid by <span id="gridDependency">0</span>%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle Graph Button -->
+        <div class="mb-4 text-center">
+            <button id="toggleGraphBtn" class="btn btn-primary">Show Daily Energy Distribution Graph</button>
+        </div>
+
+        <!-- Chart Card (Hidden by Default) -->
+        <div class="card mb-4 d-none" id="chartCard">
             <div class="card-body">
                 <h5 class="card-title">Daily Energy Distribution</h5>
                 <canvas id="energyChart"></canvas>
@@ -177,7 +263,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Constants
-        const peakSunHours = { 1: 4.0, 2: 4.5, 3: 5.0, 4: 5.5, 5: 6.0, 6: 6.5, 7: 6.5, 8: 6.0, 9: 5.5, 10: 5.0, 11: 4.5, 12: 4.0 };
+        const peakSunHours = { 1: 4.0, 2: 4.5, 3: 5.0, 4: 5.5, 5: 6.0, 6: 5.5, 7: 6.5, 8: 6.0, 9: 5.5, 10: 5.0, 11: 4.5, 12: 4.0 };
         const solarFactors = [0,0,0,0,0,0, 0.2,0.4,0.6,0.8,0.9,1.0, 1.0,0.9,0.8,0.6,0.4,0.2, 0,0,0,0,0,0];
         const sumSolarFactors = solarFactors.reduce((a, b) => a + b, 0);
         const loadProfiles = {
@@ -192,6 +278,11 @@
             workFromHome: 49,
             flat: 24
         };
+        const ANNUAL_RATE_INCREASE = 0.035; // 3.5% annual utility rate increase
+        // Environmental Impact Constants
+        const CO2_PER_KWH = 0.92; // lbs CO2 per kWh (EPA estimate)
+        const CO2_PER_TREE_25_YEARS = 1200; // 48 lbs/year × 25 years
+        const CO2_PER_MILE = 0.78; // lbs CO2 per mile (EPA estimate)
 
         // Initialize Chart
         const ctx = document.getElementById('energyChart').getContext('2d');
@@ -232,6 +323,8 @@
             const month = parseInt(document.getElementById('month').value);
             const hasBattery = document.getElementById('battery').checked;
             let batterySize = hasBattery ? parseFloat(document.getElementById('batterySize').value) || 0 : 0;
+            const compensation = document.getElementById('compensation').value;
+            const buybackRate = compensation === 'buyback' ? parseFloat(document.getElementById('buybackRate').value) || 0 : 0;
 
             // Error checking
             if (bill <= 0 || rate <= 0) {
@@ -240,7 +333,10 @@
                     hourlyCons: Array(24).fill(0),
                     hourlySolar: Array(24).fill(0),
                     netGrid: Array(24).fill(0),
-                    batteryDischarge: Array(24).fill(0)
+                    batteryDischarge: Array(24).fill(0),
+                    monthlySavings: 0,
+                    dailyCons: 0,
+                    totalDailySolar: 0
                 };
             }
             if (hasBattery && batterySize <= 0) {
@@ -249,7 +345,22 @@
                     hourlyCons: Array(24).fill(0),
                     hourlySolar: Array(24).fill(0),
                     netGrid: Array(24).fill(0),
-                    batteryDischarge: Array(24).fill(0)
+                    batteryDischarge: Array(24).fill(0),
+                    monthlySavings: 0,
+                    dailyCons: 0,
+                    totalDailySolar: 0
+                };
+            }
+            if (compensation === 'buyback' && buybackRate <= 0) {
+                alert('Buyback rate must be positive.');
+                return {
+                    hourlyCons: Array(24).fill(0),
+                    hourlySolar: Array(24).fill(0),
+                    netGrid: Array(24).fill(0),
+                    batteryDischarge: Array(24).fill(0),
+                    monthlySavings: 0,
+                    dailyCons: 0,
+                    totalDailySolar: 0
                 };
             }
 
@@ -306,15 +417,90 @@
                 }
             }
 
-            return { hourlyCons, hourlySolar, netGrid, batteryDischarge };
+            // Calculate monthly savings
+            let dailyGridCost = 0;
+            let dailyGridCostWithoutSolar = dailyCons * rate;
+            for (let h = 0; h < 24; h++) {
+                if (netGrid[h] > 0) {
+                    dailyGridCost += netGrid[h] * rate; // Cost of importing from grid
+                } else if (netGrid[h] < 0) {
+                    if (compensation === 'netMetering') {
+                        dailyGridCost += netGrid[h] * rate; // Credit for excess at full rate
+                    } else if (compensation === 'buyback') {
+                        dailyGridCost += netGrid[h] * buybackRate; // Credit at buyback rate
+                    } // No credit for 'noCredit'
+                }
+            }
+            let monthlySavings = (dailyGridCostWithoutSolar - dailyGridCost) * 30;
+            if (compensation === 'noCredit') {
+                monthlySavings = Math.min(monthlySavings, bill);
+            }
+
+            return { hourlyCons, hourlySolar, netGrid, batteryDischarge, monthlySavings, dailyCons, totalDailySolar };
         }
 
-        // Update Chart
+        // Format number with commas
+        function formatNumberWithCommas(number) {
+            return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Format number with commas (integers)
+        function formatIntegerWithCommas(number) {
+            return Math.round(number).toLocaleString('en-US');
+        }
+
+        // Calculate Financial and Environmental Impact
+        function calculateFinancialAndEnvironmentalImpact() {
+            const { monthlySavings, dailyCons, totalDailySolar, netGrid } = calculateHourlyValues();
+            const bill = parseFloat(document.getElementById('bill').value) || 0;
+
+            // Financial Impact: First-year savings
+            let firstYearSavings = monthlySavings * 12;
+            if (document.getElementById('compensation').value === 'noCredit') {
+                firstYearSavings = Math.min(firstYearSavings, bill * 12); // Cap for No Credit
+            }
+
+            // Financial Impact: 25-year savings with 3.5% annual rate increase
+            let twentyFiveYearSavings = 0;
+            let currentRateMultiplier = 1;
+            for (let year = 1; year <= 25; year++) {
+                twentyFiveYearSavings += firstYearSavings * currentRateMultiplier;
+                currentRateMultiplier *= (1 + ANNUAL_RATE_INCREASE);
+            }
+
+            // Environmental Impact: Calculate total energy generated over 25 years
+            const annualSolarEnergy = totalDailySolar * 365; // kWh per year
+            const totalEnergy25Years = annualSolarEnergy * 25; // kWh over 25 years
+
+            // CO2 Reduction
+            const co2Reduction = totalEnergy25Years * CO2_PER_KWH; // lbs
+
+            // Equivalent Trees Planted
+            const treesPlanted = co2Reduction / CO2_PER_TREE_25_YEARS;
+
+            // Equivalent Miles Driven
+            const milesDriven = co2Reduction / CO2_PER_MILE;
+
+            // Reducing Dependency on Grid (%): Based on actual grid imports
+            const gridImports = netGrid.reduce((sum, val) => sum + (val > 0 ? val : 0), 0); // Sum of grid imports (kWh/day)
+            const gridDependencyReduction = dailyCons > 0 ? (1 - (gridImports / dailyCons)) * 100 : 0;
+
+            return { 
+                firstYearSavings, 
+                twentyFiveYearSavings, 
+                co2Reduction, 
+                treesPlanted, 
+                milesDriven, 
+                gridDependencyReduction 
+            };
+        }
+
+        // Update Chart, Financial, and Environmental Impact
         function updateChart() {
             const { hourlyCons, hourlySolar, netGrid, batteryDischarge } = calculateHourlyValues();
             const hasBattery = document.getElementById('battery').checked;
 
-            // Base datasets
+            // Update chart datasets
             const datasets = [
                 {
                     label: 'Solar Production',
@@ -329,8 +515,6 @@
                     fill: false
                 }
             ];
-
-            // Add battery discharge dataset only if battery is enabled
             if (hasBattery) {
                 datasets.push({
                     label: 'Battery Discharge',
@@ -339,11 +523,34 @@
                     fill: false
                 });
             }
-
-            // Update chart datasets
             chart.data.datasets = datasets;
             chart.update();
+
+            // Update Impact Overview with comma formatting
+            const { 
+                firstYearSavings, 
+                twentyFiveYearSavings, 
+                co2Reduction, 
+                treesPlanted, 
+                milesDriven, 
+                gridDependencyReduction 
+            } = calculateFinancialAndEnvironmentalImpact();
+
+            document.getElementById('firstYearSavings').textContent = formatNumberWithCommas(firstYearSavings);
+            document.getElementById('twentyFiveYearSavings').textContent = formatNumberWithCommas(twentyFiveYearSavings);
+            document.getElementById('co2Reduction').textContent = formatIntegerWithCommas(co2Reduction);
+            document.getElementById('treesPlanted').textContent = formatIntegerWithCommas(treesPlanted);
+            document.getElementById('milesDriven').textContent = formatIntegerWithCommas(milesDriven);
+            document.getElementById('gridDependency').textContent = Math.round(gridDependencyReduction);
         }
+
+        // Toggle Graph Visibility
+        document.getElementById('toggleGraphBtn').addEventListener('click', () => {
+            const chartCard = document.getElementById('chartCard');
+            const isHidden = chartCard.classList.contains('d-none');
+            chartCard.classList.toggle('d-none');
+            document.getElementById('toggleGraphBtn').textContent = isHidden ? 'Hide Daily Energy Distribution Graph' : 'Show Daily Energy Distribution Graph';
+        });
 
         // Event Listeners
         document.querySelectorAll('input, select').forEach(el => el.addEventListener('change', updateChart));
@@ -361,6 +568,7 @@
             if (document.getElementById('compensation').value === 'buyback') {
                 document.getElementById('buybackRate').value = (parseFloat(document.getElementById('rate').value) * 0.5).toFixed(4);
             }
+            updateChart();
         });
 
         // Load Distribution Checkbox Logic
@@ -383,11 +591,11 @@
         });
 
         // Initial Setup
-        document.getElementById('month').value = new Date().getMonth() + 1;
+        document.getElementById('month').value = 4; // April
         document.getElementById('solarSizeValue').textContent = document.getElementById('solarSize').value;
         document.getElementById('buybackRate').value = (0.145 * 0.5).toFixed(4);
         document.getElementById('buybackRateGroup').classList.add('d-none');
-        document.getElementById('batteryOptions').classList.add('d-none');
+        document.getElementById('batteryOptions').classList.add('d-none'); // Hide battery options by default
         updateChart();
     </script>
 </body>
